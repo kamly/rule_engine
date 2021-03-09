@@ -1,4 +1,4 @@
-module github.com/kamly/risk_dsl
+module github.com/kamly/dsl_engine
 
 go 1.14
 

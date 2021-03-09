@@ -1,4 +1,4 @@
-package risk_dsl
+package dsl_engine
 
 import (
 	"errors"
