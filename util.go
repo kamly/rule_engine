@@ -1,4 +1,4 @@
-package dsl_engine
+package rule_engine
 
 import (
 	"errors"

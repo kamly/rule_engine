@@ -1,4 +1,4 @@
-module github.com/kamly/dsl_engine
+module github.com/kamly/rule_engine
 
 go 1.14
 

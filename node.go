@@ -1,32 +1,27 @@
-package dsl_engine
+package rule_engine
 
 const LEFT = "left"
 const RIGHT = "right"
 
+const TypeNode = "node"   // 节点
+const TypeParam = "param" // 参数
+const TypeValue = "value" // 值
+const TypeFunc = "func"   // 函数
+
 // 节点
 type Node struct {
+	Type        string
 	Logic       string
-	Left        interface{}
+
+	Left        *Node
 	LeftResult  interface{}
-	Right       interface{}
+
+	Right       *Node
 	RightResult interface{}
+
 	Result      interface{}
-}
 
-// 参数
-type NodeParam struct {
-	Name  string
-	Value interface{}
-}
-
-// 函数
-type NodeFunc struct {
 	Name   string
 	Params []interface{}
 	Value  interface{}
-}
-
-// 值
-type NodeValue struct {
-	Value interface{}
 }

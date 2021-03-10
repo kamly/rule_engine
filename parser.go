@@ -1,4 +1,4 @@
-package dsl_engine
+package rule_engine
 
 import (
 	"fmt"
@@ -6,26 +6,30 @@ import (
 	"github.com/Knetic/govaluate"
 )
 
-func (dsl *Dsl) getNextNode(node *Node) bool {
+func (rule *Rule) getNextNode(node *Node) bool {
 	// 先计算 left
-	if _, ok := node.Left.(*Node); ok {
-		node.LeftResult = dsl.getNextNode(node.Left.(*Node))
-	} else {
-		dsl.getNodeValue(LEFT, node)
+	if node.Left != nil {
+		if node.Left.Type == TypeNode {
+			node.LeftResult = rule.getNextNode(node.Left)
+		} else {
+			rule.getNodeValue(LEFT, node)
+		}
 	}
 
-	if _, ok := node.Right.(*Node); ok {
-		node.RightResult = dsl.getNextNode(node.Right.(*Node))
-	} else {
-		dsl.getNodeValue(RIGHT, node)
+	if node.Right != nil {
+		if node.Right.Type == TypeNode {
+			node.RightResult = rule.getNextNode(node.Right)
+		} else {
+			rule.getNodeValue(RIGHT, node)
+		}
 	}
 
 	// 进行逻辑判断 > < <= >= == || &&
-	return dsl.calculate(node)
+	return rule.calculate(node)
 }
 
 // 进行逻辑判断 > < <= >= == || &&
-func (dsl *Dsl) calculate(node *Node) bool {
+func (rule *Rule) calculate(node *Node) bool {
 	switch node.Logic {
 	case ">", "<", ">=", "<=", "==":
 		// 执行逻辑
@@ -57,7 +61,7 @@ func (dsl *Dsl) calculate(node *Node) bool {
 }
 
 // 获取每个节点的值
-func (dsl *Dsl) getNodeValue(typeNode string, node *Node) {
+func (rule *Rule) getNodeValue(typeNode string, node *Node) {
 
 	newNode := node.Left
 	if typeNode == RIGHT {
@@ -66,31 +70,28 @@ func (dsl *Dsl) getNodeValue(typeNode string, node *Node) {
 
 	var value interface{}
 
-	switch newNode.(type) {
-	case NodeValue: // 具体值
-		nodeValue := newNode.(NodeValue)
-		value = nodeValue.Value
+	switch newNode.Type {
+	case TypeValue: // 具体值
+		value = newNode.Value
 		break
-	case NodeParam: // 参数
-		nodeParam := newNode.(NodeParam)
-		nodeParam.Value = dsl.getParamListByName(nodeParam.Name)
-		value = nodeParam.Value
+	case TypeParam: // 参数
+		newNode.Value = rule.getParamListByName(newNode.Name)
+		value = newNode.Value
 		break
-	case NodeFunc: // 函数
-		nodeFunc := newNode.(NodeFunc)
-		switch len(nodeFunc.Params) { // TODO 参数个数
+	case TypeFunc: // 函数
+		switch len(newNode.Params) { // TODO 参数个数
 		case 1:
-			results, _ := callFunc(dsl.FuncList, nodeFunc.Name, nodeFunc.Params[0])
+			results, _ := callFunc(rule.FuncList, newNode.Name, newNode.Params[0])
 			// TODO 抽离返回值类型
 			for _, item := range results {
 				switch item.Type().String() {
 				case "uint64":
-					nodeFunc.Value = item.Uint()
+					newNode.Value = item.Uint()
 				case "bool":
-					nodeFunc.Value = item.Bool()
+					newNode.Value = item.Bool()
 				}
 			}
-			value = nodeFunc.Value
+			value = newNode.Value
 		}
 		break
 	}

@@ -1,4 +1,4 @@
-package dsl_engine
+package rule_engine
 
 import (
 	"testing"
@@ -27,33 +27,43 @@ func TestNew(t *testing.T) {
 	//   return REJECT
 	// }
 	tmpNode := &Node{
+		Type:   TypeNode,
 		Logic:  "&&",
 		Result: REJECT,
 		Left: &Node{
+			Type:  TypeNode,
 			Logic: "||",
 			Left: &Node{
+				Type:  TypeNode,
 				Logic: ">",
-				Left: NodeFunc{
+				Left: &Node{
+					Type:   TypeFunc,
 					Name:   "requestDemo1",
 					Params: []interface{}{"demo_1"},
 				},
-				Right: NodeValue{
+				Right: &Node{
+					Type:  TypeValue,
 					Value: 90,
 				},
 			},
 			Right: &Node{
+				Type:  TypeNode,
 				Logic: "<",
-				Left: NodeParam{
+				Left: &Node{
+					Type: TypeParam,
 					Name: "tmpNum",
 				},
-				Right: NodeValue{
+				Right: &Node{
+					Type:  TypeValue,
 					Value: 1000,
 				},
 			},
 		},
 		Right: &Node{
+			Type:  TypeNode,
 			Logic: "bool",
-			Left: NodeFunc{
+			Left: &Node{
+				Type:   TypeFunc,
 				Name:   "requestDemo2",
 				Params: []interface{}{"demo_2"},
 			},
@@ -62,12 +72,16 @@ func TestNew(t *testing.T) {
 
 	nodes = append(nodes, tmpNode)
 
-	dsl := New()
-	dsl.SetParamList(paramList)
-	dsl.SetFuncList(funcList)
-	dsl.SetNodes(nodes)
-	result := dsl.Parser()
+	rule := New()
+	rule.SetParamList(paramList)
+	rule.SetFuncList(funcList)
+	rule.SetNodes(nodes)
+	result := rule.Parser()
 	//fmt.Println(result)
+
+	if result == nil {
+		result = ""
+	}
 
 	assert.Equal(t, result.(string), REJECT)
 }
