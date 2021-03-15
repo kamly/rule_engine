@@ -34,6 +34,12 @@ func (rule *Rule) calculate(node *Node) bool {
 	case ">", "<", ">=", "<=", "==":
 		// 执行逻辑
 		var params = make(map[string]interface{})
+
+		if node.LeftResult == nil || node.RightResult == nil {
+			// TODO 
+			return false
+		}
+
 		params["left"] = node.LeftResult
 		params["right"] = node.RightResult
 
@@ -79,20 +85,19 @@ func (rule *Rule) getNodeValue(typeNode string, node *Node) {
 		value = newNode.Value
 		break
 	case TypeFunc: // 函数
-		switch len(newNode.Params) { // TODO 参数个数
-		case 1:
-			results, _ := callFunc(rule.FuncList, newNode.Name, newNode.Params[0])
-			// TODO 抽离返回值类型
-			for _, item := range results {
-				switch item.Type().String() {
-				case "uint64":
-					newNode.Value = item.Uint()
-				case "bool":
-					newNode.Value = item.Bool()
-				}
+		results, _ := callFunc(rule.FuncList, newNode.Name, newNode.Params...)
+		// TODO 抽离返回值类型
+		for _, item := range results {
+			switch item.Type().String() {
+			case "uint64":
+				newNode.Value = item.Uint()
+			case "bool":
+				newNode.Value = item.Bool()
+			case "string":
+				newNode.Value = item.String()
 			}
-			value = newNode.Value
 		}
+		value = newNode.Value
 		break
 	}
 
